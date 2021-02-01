@@ -26,6 +26,7 @@
 #include "WalletLegacy/WalletLegacySerialization.h"
 #include "WalletLegacy/WalletLegacySerializer.h"
 #include "WalletLegacy/WalletUtils.h"
+#include "Common/ColouredMsg.h"
 #include "Common/StringTools.h"
 #include "CryptoNoteCore/CryptoNoteTools.h"
 
@@ -240,7 +241,7 @@ void WalletLegacy::initAndLoad(std::istream& source, const std::string& password
 void WalletLegacy::initSync() {
   AccountSubscription sub;
   sub.keys = reinterpret_cast<const AccountKeys&>(m_account.getAccountKeys());
-  sub.transactionSpendableAge = CryptoNote::parameters::DEFAULT_TX_SPENDABLE_AGE;
+  sub.transactionSpendableAge = CryptoNote::parameters::MINED_COINS_UNLOCK_WINDOW;
   sub.syncStart.height = 0;
   sub.syncStart.timestamp = m_account.get_createtime() - ACCOUN_CREATE_TIME_ACCURACY;
 
@@ -273,16 +274,21 @@ void WalletLegacy::doLoad(std::istream& source) {
     } catch (const std::exception&) {
       // ignore cache loading errors
     }
-	// Read all output keys cache
+	  // Read all output keys cache
     std::vector<TransactionOutputInformation> allTransfers;
     m_transferDetails->getOutputs(allTransfers, ITransfersContainer::IncludeAll);
-    std::cout << "Loaded " + std::to_string(allTransfers.size()) + " known transfer(s)\r\n";
+
+    if (allTransfers.size() == 0) {
+      std::cout << YellowMsg("Either your wallet holds 0 transactions or your wallet isn't fully sync'd.") << std::endl;
+    } else if (allTransfers.size() >= 1) {
+      std::cout << BrightGreenMsg("Loaded ") << BrightGreenMsg(std::to_string(allTransfers.size())) << BrightGreenMsg(" known transfer(s)\r") << std::endl;
+    }
+
     for (auto& o : allTransfers) {
       if (o.type == TransactionTypes::OutputType::Key) {
         m_transfersSync.addPublicKeysSeen(m_account.getAccountKeys().address, o.transactionHash, o.outputKey);
       }
     }
-
   } catch (std::system_error& e) {
     runAtomic(m_cacheMutex, [this] () {this->m_state = WalletLegacy::NOT_INITIALIZED;} );
     m_observerManager.notify(&IWalletLegacyObserver::initCompleted, e.code());

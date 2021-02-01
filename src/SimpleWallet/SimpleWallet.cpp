@@ -489,23 +489,12 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
       fail_msg_writer() << "failed to parse daemon address: " << m_daemon_address;
       return false;
     }
-    remote_fee_address = getFeeAddress();
     logger(INFO, BRIGHT_WHITE) << "Connected to remote node: " << m_daemon_host;
-    if (!remote_fee_address.empty()) 
-    {
-      logger(INFO, BRIGHT_WHITE) << "Fee address: " << remote_fee_address;
-    }    
   } 
   else 
   {
-    if (!m_daemon_host.empty()) 
-      remote_fee_address = getFeeAddress();
 		m_daemon_address = std::string("http://") + m_daemon_host + ":" + std::to_string(m_daemon_port);
     logger(INFO, BRIGHT_WHITE) << "Connected to remote node: " << m_daemon_host;
-    if (!remote_fee_address.empty()) 
-    {
-      logger(INFO, BRIGHT_WHITE) << "Fee address: " << remote_fee_address;
-    }   
   }
 
   if (m_generate_new.empty() && m_wallet_file_arg.empty()) {
@@ -587,7 +576,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     return false;
   }
 
-  this->m_node.reset(new NodeRpcProxy(m_daemon_host, m_daemon_port));
+  this->m_node.reset(new NodeRpcProxy(m_daemon_host, m_daemon_port, logger.getLogger()));
 
   std::promise<std::error_code> errorPromise;
   std::future<std::error_code> f_error = errorPromise.get_future();
@@ -1568,34 +1557,6 @@ std::string simple_wallet::resolveAlias(const std::string& aliasUrl) {
 }
 //----------------------------------------------------------------------------------------------------
 
-/* This extracts the fee address from the remote node */
-std::string simple_wallet::getFeeAddress() {
-  
-  HttpClient httpClient(m_dispatcher, m_daemon_host, m_daemon_port);
-
-  HttpRequest req;
-  HttpResponse res;
-
-  req.setUrl("/feeaddress");
-  try {
-	  httpClient.request(req, res);
-  }
-  catch (const std::exception& e) {
-	  fail_msg_writer() << "Error connecting to the remote node: " << e.what();
-  }
-
-  if (res.getStatus() != HttpResponse::STATUS_200) {
-	  fail_msg_writer() << "Remote node returned code " + std::to_string(res.getStatus());
-  }
-
-  std::string address;
-  if (!processServerFeeAddressResponse(res.getBody(), address)) {
-	  fail_msg_writer() << "Failed to parse remote node response";
-  }
-
-  return address;
-}
-
 bool simple_wallet::confirmTransaction(TransferCommand cmd, bool multiAddress) {
   std::string feeString;
 
@@ -2064,7 +2025,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    std::unique_ptr<INode> node(new NodeRpcProxy(daemon_host, daemon_port));
+    std::unique_ptr<INode> node(new NodeRpcProxy(daemon_host, daemon_port, logger.getLogger()));
 
     std::promise<std::error_code> errorPromise;
     std::future<std::error_code> error = errorPromise.get_future();
