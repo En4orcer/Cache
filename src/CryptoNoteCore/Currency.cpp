@@ -1,8 +1,10 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #include "Currency.h"
 #include <cctype>
@@ -11,6 +13,7 @@
 #include "../Common/Base58.h"
 #include "../Common/int-util.h"
 #include "../Common/StringTools.h"
+#include "Common/Types.h"
 
 #include "CryptoNoteConfig.h"
 #include "Logging/FileLog.h"
@@ -29,7 +32,7 @@ using namespace Common;
 namespace CryptoNote
 {
 
-  const std::vector<uint64_t> Currency::PRETTY_AMOUNTS = {
+  const std::vector<Amount> Currency::PRETTY_AMOUNTS = {
       1, 2, 3, 4, 5, 6, 7, 8, 9,
       10, 20, 30, 40, 50, 60, 70, 80, 90,
       100, 200, 300, 400, 500, 600, 700, 800, 900,
@@ -51,7 +54,7 @@ namespace CryptoNote
       1000000000000000000, 2000000000000000000, 3000000000000000000, 4000000000000000000, 5000000000000000000, 6000000000000000000, 7000000000000000000, 8000000000000000000, 9000000000000000000,
       10000000000000000000ull};
 
-  const std::vector<uint64_t> Currency::REWARD_INCREASING_FACTOR = { 0, 25000, 50000, 75000, 100000, 125000, 150000, 175000, 200000 };
+  const std::vector<Amount> Currency::REWARD_INCREASING_FACTOR = { 0, 25000, 50000, 75000, 100000, 125000, 150000, 175000, 200000 };
 
   bool Currency::init()
   {
@@ -70,7 +73,7 @@ namespace CryptoNote
     if (isTestnet())
     {
       m_upgradeHeightV2 = 0;
-      m_upgradeHeightV3 = static_cast<uint32_t>(-1);
+      m_upgradeHeightV3 = static_cast<Height>(-1);
       m_blocksFileName = "testnet_" + m_blocksFileName;
       m_blocksCacheFileName = "testnet_" + m_blocksCacheFileName;
       m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
@@ -111,7 +114,6 @@ namespace CryptoNote
       ++m_genesisBlock.nonce;
     }
 
-    //miner::find_nonce_for_given_block(bl, 1, 0);
     return true;
   }
 
@@ -532,7 +534,7 @@ namespace CryptoNote
 
   bool Currency::parseAccountAddressString(const std::string &str, AccountPublicAddress &addr) const
   {
-    uint64_t prefix;
+    Prefix prefix;
     if (!CryptoNote::parseAccountAddressString(prefix, addr, str))
     {
       return false;

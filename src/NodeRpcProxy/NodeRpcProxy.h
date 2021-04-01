@@ -1,8 +1,10 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #pragma once
 
@@ -15,6 +17,8 @@
 
 #include "Common/ObserverManager.h"
 #include "INode.h"
+
+#include "Logging/LoggerRef.h"
 
 namespace System {
   class ContextGroup;
@@ -34,7 +38,7 @@ public:
 
 class NodeRpcProxy : public CryptoNote::INode {
 public:
-  NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort);
+  NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort, Logging::ILogger& logger);
   virtual ~NodeRpcProxy();
 
   virtual bool addObserver(CryptoNote::INodeObserver* observer) override;
@@ -112,6 +116,7 @@ private:
   };
 
 private:
+  Logging::LoggerRef m_logger;
   State m_state = STATE_NOT_INITIALIZED;
   std::mutex m_mutex;
   std::condition_variable m_cv_initialized;

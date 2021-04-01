@@ -1,8 +1,10 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #include "RpcServer.h"
 
@@ -108,6 +110,11 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
   auto url = request.getUrl();
+  if (url.find(".bin") == std::string::npos) {
+    logger(TRACE) << "RPC request came: \n" << request << std::endl;
+  } else {
+    logger(TRACE) << "RPC request came: " << url << std::endl;
+  }
 
   auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {
@@ -701,6 +708,7 @@ bool RpcServer::on_get_peer_list(const COMMAND_RPC_GET_PEER_LIST::request& req, 
 
 bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RPC_GET_INFO::response& res) {
   res.height = m_core.get_current_blockchain_height();
+  res.network_height = std::max(static_cast<uint32_t>(1), m_protocolQuery.getBlockchainHeight());
   res.difficulty = m_core.getNextBlockDifficulty();
   res.tx_count = m_core.get_blockchain_total_transactions() - res.height; //without coinbase
   res.tx_pool_size = m_core.get_pool_transactions_count();
@@ -718,6 +726,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.top_block_hash = Common::podToHex(last_block_hash);
   res.node_info = m_node_info.empty() ? std::string() : m_node_info;
   res.start_time = m_core.getStartTime();
+  res.free_disk_space = m_restricted_rpc ? std::numeric_limits<uint64_t>::max() : m_core.get_free_space();
   res.version = PROJECT_VERSION;
 
   Block blk;

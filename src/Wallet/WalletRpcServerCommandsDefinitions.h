@@ -1,8 +1,10 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #pragma once
 #include "CryptoNoteProtocol/CryptoNoteProtocolDefinitions.h"
@@ -229,18 +231,7 @@ using CryptoNote::ISerializer;
   };
 
   struct COMMAND_RPC_GET_TRANSFERS {
-    struct request
-    {
-      bool filter_by_height;
-      uint64_t min_height;
-      uint64_t max_height;
-
-      void serialize(ISerializer& s) {
-        KV_MEMBER(filter_by_height);
-        KV_MEMBER(min_height);
-        KV_MEMBER(max_height);
-      }
-    };
+    typedef CryptoNote::EMPTY_STRUCT request;
 
     struct response {
       std::list<Transfer> transfers;

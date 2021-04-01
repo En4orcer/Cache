@@ -1,8 +1,10 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #pragma once
 
@@ -262,6 +264,7 @@ struct COMMAND_RPC_GET_INFO {
     std::string fee_address;
     std::string top_block_hash;
     uint64_t height;
+    uint32_t network_height;
     uint64_t difficulty;
     uint64_t tx_count;
     uint64_t tx_pool_size;
@@ -278,11 +281,13 @@ struct COMMAND_RPC_GET_INFO {
     uint64_t last_block_timestamp;
     uint64_t last_block_difficulty;
     uint64_t start_time;
+    uint64_t free_disk_space;
     std::vector<std::string> connections;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)
       KV_MEMBER(height)
+      KV_MEMBER(network_height)
       KV_MEMBER(version)
       KV_MEMBER(node_info)
       KV_MEMBER(difficulty)
@@ -302,8 +307,9 @@ struct COMMAND_RPC_GET_INFO {
       KV_MEMBER(last_block_reward)
       KV_MEMBER(last_block_timestamp)
       KV_MEMBER(last_block_difficulty)
+      KV_MEMBER(start_time)
+      KV_MEMBER(free_disk_space)
       KV_MEMBER(connections)
-      KV_MEMBER(start_time)  
     }
   };
 };

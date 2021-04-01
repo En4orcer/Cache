@@ -1,3 +1,9 @@
+// Copyright (c) 2018-2020 - The TurtleCoin Developers
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
+
 #include <CacheWallet/CacheWallet.h>
 
 int main(int argc, char **argv)
@@ -39,7 +45,7 @@ int main(int argc, char **argv)
 
     /* Our connection to cache-daemon */
     std::unique_ptr<CryptoNote::INode> node(
-        new CryptoNote::NodeRpcProxy(config.host, config.port));
+        new CryptoNote::NodeRpcProxy(config.host, config.port, logger.getLogger()));
 
     std::promise<std::error_code> errorPromise;
     std::future<std::error_code> error = errorPromise.get_future();

@@ -1,13 +1,17 @@
 // Copyright (c) 2011-2017 The Cryptonote developers
 // Copyright (c) 2017-2018 The Circle Foundation & Conceal Devs
 // Copyright (c) 2018-2019 Conceal Network & Conceal Devs
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2020 - The Cache Developers
+//
+// Distributed under the GNU Lesser General Public License v3.0.
+// Please read Cache/License.md
 
 #include "Core.h"
 
+#include <boost/filesystem.hpp>
 #include <sstream>
 #include <unordered_set>
+
 #include "../CryptoNoteConfig.h"
 #include "../Common/CommandLine.h"
 #include "../Common/Util.h"
@@ -111,6 +115,10 @@ void core::get_blockchain_top(uint32_t& height, Crypto::Hash& top_id) {
 
 bool core::rollback_chain_to(uint32_t height) {
   return m_blockchain.rollbackBlockchainTo(height);
+}
+
+bool core::saveBlockchain() {
+  return m_blockchain.storeCache();
 }
 
 bool core::get_blocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks, std::list<Transaction>& txs) {
@@ -1140,6 +1148,24 @@ std::vector<Crypto::Hash> core::getTransactionHashesByPaymentId(const Crypto::Ha
   std::move(poolTransactionHashes.begin(), poolTransactionHashes.end(), std::back_inserter(blockchainTransactionHashes));
 
   return blockchainTransactionHashes;
+}
+
+bool core::check_disk_space()
+{
+  uint64_t free_space = get_free_space();
+  if (free_space < 1ull * 1024 * 1024 * 1024) // 1 GB
+  {
+    logger(INFO, BRIGHT_RED) << "Free space is below 1 GB on " << m_config_folder;
+  }
+
+  return true;
+}
+
+uint64_t core::get_free_space() const
+{
+  boost::filesystem::path path(m_config_folder);
+  boost::filesystem::space_info si = boost::filesystem::space(path);
+  return si.available;
 }
 
 }
